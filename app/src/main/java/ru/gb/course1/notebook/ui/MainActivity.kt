@@ -1,81 +1,70 @@
-package ru.gb.course1.notebook.ui;
+package ru.gb.course1.notebook.ui
 
-import android.os.Bundle;
+import androidx.appcompat.app.AppCompatActivity
+import ru.gb.course1.notebook.ui.NotesListFragment
+import ru.gb.course1.notebook.ui.NoteEditFragment
+import com.google.android.material.appbar.MaterialToolbar
+import android.os.Bundle
+import ru.gb.course1.notebook.R
+import ru.gb.course1.notebook.domain.Note
 
-import androidx.appcompat.app.AppCompatActivity;
-
-import com.google.android.material.appbar.MaterialToolbar;
-
-import ru.gb.course1.notebook.R;
-import ru.gb.course1.notebook.domain.Note;
-
-public class MainActivity extends AppCompatActivity implements NotesListFragment.Controller, NoteEditFragment.Controller {
-    private MaterialToolbar topAppBar;
-    private NotesListFragment notesListFragment;
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        initialiseTopAppBar();
-        launchNotesListFragment();
+class MainActivity : AppCompatActivity(), NotesListFragment.Controller, NoteEditFragment.Controller {
+    private var topAppBar: MaterialToolbar? = null
+    private var notesListFragment: NotesListFragment? = null
+    public override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+        initialiseTopAppBar()
+        launchNotesListFragment()
     }
 
-    private void initialiseTopAppBar() {
-        topAppBar = findViewById(R.id.top_app_bar);
-        setSupportActionBar(topAppBar);
+    private fun initialiseTopAppBar() {
+        topAppBar = findViewById(R.id.top_app_bar)
+        setSupportActionBar(topAppBar)
     }
 
-    @Override
-    public void onBackPressed() {
-        if (getSupportFragmentManager().findFragmentByTag(NoteEditFragment.NOTE_EDIT_FRAGMENT) != null) {
-            NoteEditFragment noteEditFragment = (NoteEditFragment) getSupportFragmentManager().findFragmentByTag(NoteEditFragment.NOTE_EDIT_FRAGMENT);
-            if (noteEditFragment != null) {
-                noteEditFragment.onBackPressed();
-            }
+    override fun onBackPressed() {
+        if (supportFragmentManager.findFragmentByTag(NoteEditFragment.NOTE_EDIT_FRAGMENT) != null) {
+            val noteEditFragment = supportFragmentManager.findFragmentByTag(NoteEditFragment.NOTE_EDIT_FRAGMENT) as NoteEditFragment?
+            noteEditFragment?.onBackPressed()
         } else {
-            super.onBackPressed();
+            super.onBackPressed()
         }
     }
 
-    private void launchNotesListFragment() {
-        notesListFragment = new NotesListFragment();
-        getSupportFragmentManager()
+    private fun launchNotesListFragment() {
+        notesListFragment = NotesListFragment()
+        supportFragmentManager
                 .beginTransaction()
-                .add(R.id.fragment_container_frame_layout, notesListFragment, NotesListFragment.NOTES_LIST_FRAGMENT)
-                .commit();
+                .add(R.id.fragment_container_frame_layout, notesListFragment!!, NotesListFragment.NOTES_LIST_FRAGMENT)
+                .commit()
     }
 
-    @Override
-    public void launchEditNoteScreen(Note note) {
-        getSupportFragmentManager()
+    override fun launchEditNoteScreen(note: Note) {
+        supportFragmentManager
                 .beginTransaction()
                 .replace(R.id.fragment_container_frame_layout, NoteEditFragment.newInstance(note, topAppBar), NoteEditFragment.NOTE_EDIT_FRAGMENT)
                 .addToBackStack("")
-                .commit();
-        topAppBar.setNavigationIcon(R.drawable.ic_baseline_keyboard_backspace_24);
-        topAppBar.setTitle("");
+                .commit()
+        topAppBar!!.setNavigationIcon(R.drawable.ic_baseline_keyboard_backspace_24)
+        topAppBar!!.title = ""
     }
 
-    @Override
-    public void returnNewNote(Note note) {
-        notesListFragment = (NotesListFragment) getSupportFragmentManager().findFragmentByTag(NotesListFragment.NOTES_LIST_FRAGMENT);
+    override fun returnNewNote(note: Note) {
+        notesListFragment = supportFragmentManager.findFragmentByTag(NotesListFragment.NOTES_LIST_FRAGMENT) as NotesListFragment?
         if (notesListFragment != null) {
-            getSupportFragmentManager().popBackStack();
-            notesListFragment.setNewNote(note);
-            topAppBar.setTitle(getString(R.string.app_name));
-            topAppBar.setNavigationIcon(null);
+            supportFragmentManager.popBackStack()
+            notesListFragment!!.setNewNote(note)
+            topAppBar!!.title = getString(R.string.app_name)
         }
     }
 
-    @Override
-    public void returnChangedNote(Note note) {
-        notesListFragment = (NotesListFragment) getSupportFragmentManager().findFragmentByTag(NotesListFragment.NOTES_LIST_FRAGMENT);
+    override fun returnChangedNote(note: Note) {
+        notesListFragment = supportFragmentManager.findFragmentByTag(NotesListFragment.NOTES_LIST_FRAGMENT) as NotesListFragment?
         if (notesListFragment != null) {
-            getSupportFragmentManager().popBackStack();
-            notesListFragment.setChangedNote(note);
-            topAppBar.setTitle(getString(R.string.app_name));
-            topAppBar.setNavigationIcon(null);
+            supportFragmentManager.popBackStack()
+            notesListFragment!!.setChangedNote(note)
+            topAppBar!!.title = getString(R.string.app_name)
         }
     }
 }

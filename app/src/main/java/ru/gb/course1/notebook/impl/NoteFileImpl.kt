@@ -1,70 +1,59 @@
-package ru.gb.course1.notebook.impl;
+package ru.gb.course1.notebook.impl
 
-import static android.content.Context.MODE_PRIVATE;
+import android.content.Context
+import ru.gb.course1.notebook.domain.NoteFileRepo
+import com.fasterxml.jackson.databind.ObjectMapper
+import org.json.JSONObject
+import org.json.JSONException
+import ru.gb.course1.notebook.domain.Note
+import java.io.*
+import java.util.ArrayList
 
-import android.content.Context;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.util.ArrayList;
-import java.util.List;
-
-import ru.gb.course1.notebook.domain.Note;
-import ru.gb.course1.notebook.domain.NoteFileRepo;
-
-public class NoteFileImpl implements NoteFileRepo {
-    @Override
-    public void saveNoteToFile(Context context, Note note) {
-        ObjectMapper om = new ObjectMapper();
-        try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(
-                context.openFileOutput(String.format("%s.txt", note.getIdNote()), MODE_PRIVATE)))) {
-            bw.write(om.writeValueAsString(note));
-        } catch (IOException e) {
-            e.printStackTrace();
+class NoteFileImpl : NoteFileRepo {
+    override fun saveNoteToFile(context: Context, note: Note) {
+        val om = ObjectMapper()
+        try {
+            BufferedWriter(OutputStreamWriter(
+                    context.openFileOutput(String.format("%s.txt", note.idNote), Context.MODE_PRIVATE))).use { bw -> bw.write(om.writeValueAsString(note)) }
+        } catch (e: IOException) {
+            e.printStackTrace()
         }
     }
 
-    @Override
-    public void updateNoteInFile(Context context, Note note) {
-        saveNoteToFile(context, note);
+    override fun updateNoteInFile(context: Context, note: Note) {
+        saveNoteToFile(context, note)
     }
 
-    @Override
-    public void deleteNoteFile(Context context, int idNote) {
-        String[] filesNotes = context.fileList();
-        for (String fileNote : filesNotes) {
-            if (fileNote.equals(String.format("%s.txt", idNote))) {
-                context.deleteFile(fileNote);
+    override fun deleteNoteFile(context: Context, idNote: Int) {
+        val filesNotes = context.fileList()
+        for (fileNote in filesNotes) {
+            if (fileNote == String.format("%s.txt", idNote)) {
+                context.deleteFile(fileNote)
             }
         }
     }
 
-    @Override
-    public List<Note> getNotesFromFiles(Context context) {
-        List<Note> notes = new ArrayList<>();
-        String[] filesNotes = context.fileList();
-        for (String fileName : filesNotes) {
-            try (BufferedReader br = new BufferedReader(new InputStreamReader(
-                    context.openFileInput(fileName)))) {
-                String str;
-                while ((str = br.readLine()) != null) {
-                    JSONObject jsonRequest = new JSONObject(str);
-                    Note note = new Note(jsonRequest.getInt("idNote"), jsonRequest.getString("title"),
-                            jsonRequest.getString("description"), jsonRequest.getString("timeCreate"));
-                    notes.add(note);
+    override fun getNotesFromFiles(context: Context): List<Note> {
+        val notes: MutableList<Note> = ArrayList()
+        val filesNotes = context.fileList()
+        for (fileName in filesNotes) {
+            try {
+                BufferedReader(InputStreamReader(
+                        context.openFileInput(fileName))).use { br ->
+                    var str: String?
+                    while (br.readLine().also { str = it } != null) {
+                        val jsonRequest = JSONObject(str)
+                        val note = Note(jsonRequest.getInt("idNote"), jsonRequest.getString("title"),
+                                jsonRequest.getString("description"), jsonRequest.getString("timeCreate"))
+                        notes.add(note)
+                    }
                 }
-            } catch (IOException | JSONException e) {
-                e.printStackTrace();
+            } catch (e: IOException) {
+                e.printStackTrace()
+            } catch (e: JSONException) {
+                e.printStackTrace()
             }
         }
-        return notes;
+        return notes
     }
 }
